@@ -38,6 +38,12 @@ from .user import (
     get_user_auth_service
 )
 
+# Auth зависимости
+from .auth import (
+    AuthDependencyFactory,
+    get_auth_service
+)
+
 __all__ = [
     # Основные зависимости
     "get_db",
@@ -64,5 +70,9 @@ __all__ = [
     # Пользовательские зависимости
     "UserProfileDependencyFactory",
     "get_user_profile_service",
-    "get_user_auth_service"
+    "get_user_auth_service",
+    
+    # Auth зависимости
+    "AuthDependencyFactory",
+    "get_auth_service"
 ]
