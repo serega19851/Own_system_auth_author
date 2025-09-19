@@ -7,7 +7,8 @@ from app.schemas.auth import (
     UserRegister, UserRegisterResponse, LoginRequest, TokenResponse,
     RefreshTokenRequest, RefreshTokenResponse
 )
-from app.services.user_service import get_user_service, UserService
+from app.dependencies import get_user_auth_service as get_user_service
+from app.services.user.user_auth_service import UserService
 from app.auth import get_jwt_service, JWTService, get_cookie_service, CookieService
 
 router = APIRouter(prefix="/auth", tags=["authentication"])

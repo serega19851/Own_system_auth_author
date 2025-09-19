@@ -8,7 +8,7 @@ from fastapi import HTTPException, status, Depends
 from app.models import User, Role
 from app.schemas.auth import UserRegister, UserRegisterResponse
 from app.auth import PasswordService
-from app.dependencies import get_db
+from app.core_dependencies import get_db
 
 
 class UserService:

@@ -1,4 +1,4 @@
-# app/dependencies.py
+# app/core_dependencies.py
 from typing import Optional
 from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from app.database import AsyncSessionLocal
+from app.database import get_db
 from app.models import User, Role
 from app.auth import get_jwt_service, JWTService
 
@@ -14,13 +14,7 @@ from app.auth import get_jwt_service, JWTService
 security = HTTPBearer(auto_error=False)
 
 
-async def get_db():
-    """Получение сессии базы данных"""
-    async with AsyncSessionLocal() as session:
-        try:
-            yield session
-        finally:
-            await session.close()
+# Пользовательские зависимости перенесены в app.dependencies.user
 
 
 def get_token_from_request(
