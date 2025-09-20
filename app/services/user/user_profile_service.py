@@ -4,7 +4,7 @@ UserProfileService - сервис для управления пользоват
 """
 
 from datetime import datetime
-from typing import Optional, Dict, Any
+from typing import Dict, Any
 from sqlalchemy.exc import SQLAlchemyError
 
 from ...repositories.user_repository import UserRepository

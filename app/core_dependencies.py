@@ -8,13 +8,10 @@ from sqlalchemy.orm import selectinload
 
 from app.database import get_db
 from app.models import User, Role
-from app.auth import get_jwt_service, JWTService
+from app.auth import JWTService
 
 # Настройка безопасности (опциональная для поддержки cookies)
 security = HTTPBearer(auto_error=False)
-
-
-# Пользовательские зависимости перенесены в app.dependencies.user
 
 
 def get_token_from_request(
@@ -40,7 +37,7 @@ def get_token_from_request(
 async def get_current_user(
     request: Request,
     db: AsyncSession = Depends(get_db),
-    jwt_service: JWTService = Depends(get_jwt_service),
+    jwt_service: JWTService = Depends(JWTService),
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)
 ) -> User:
     """

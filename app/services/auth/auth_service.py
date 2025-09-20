@@ -3,7 +3,6 @@
 """
 
 from fastapi import HTTPException, status, Response, Request
-from typing import Optional
 
 from app.services.user.user_auth_service import UserService
 from app.auth import JWTService, CookieService

@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
 from app.services.auth import AuthService
 from app.services.user.user_auth_service import UserService
-from app.auth import JWTService, CookieService, get_jwt_service, get_cookie_service
+from app.auth import JWTService, CookieService
 
 
 class AuthDependencyFactory:

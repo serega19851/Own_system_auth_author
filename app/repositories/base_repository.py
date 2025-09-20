@@ -1,6 +1,6 @@
 from typing import TypeVar, Type, Optional, List, Dict, Any, Generic
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, delete, func
+from sqlalchemy import select, delete, func
 from sqlalchemy.exc import SQLAlchemyError
 
 T = TypeVar('T')

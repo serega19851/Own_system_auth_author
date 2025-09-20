@@ -3,7 +3,7 @@
 Инкапсулирует логику работы с ролями для административных операций
 """
 
-from typing import List, Optional
+from typing import List
 from datetime import datetime
 
 from ...repositories.role_repository import RoleRepository

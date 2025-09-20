@@ -1,7 +1,4 @@
 # app/dependencies/resources/resources_dependencies.py
-
-from fastapi import Depends
-
 from app.services.resources import (
     ResourcesService, DocumentsService, ReportsService,
     UserProfilesResourceService, SystemResourceService, PermissionCheckService

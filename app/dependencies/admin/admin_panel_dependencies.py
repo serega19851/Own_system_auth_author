@@ -7,10 +7,6 @@ from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from ...models.user import User
-from ...models.role import Role
-from ...models.permission import Permission
-from ...models.resource import Resource
 
 # Репозитории
 from ...repositories import (
@@ -24,7 +20,6 @@ from ...repositories import (
 from ...mappers import SystemMappers
 from ...validators import SystemValidators
 
-# Сервисы (прямой импорт для избежания циклических зависимостей)
 from ...services.admin.system_statistics_service import SystemStatisticsService
 from ...services.admin.user_management_service import UserManagementService
 from ...services.admin.role_management_service import RoleManagementService

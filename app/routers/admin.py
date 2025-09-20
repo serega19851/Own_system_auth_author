@@ -1,13 +1,10 @@
 # app/routers/admin.py
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends
 from fastapi.security import HTTPBearer
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, delete, func, text
-from sqlalchemy.orm import selectinload
 
-from app.dependencies import get_db, get_admin_user, get_admin_panel_service
-from app.models import User, Role, Permission, Resource
+from app.dependencies import get_admin_user, get_admin_panel_service
+from app.models import User
 from app.services.admin import AdminPanelService
 from app.schemas.admin import (
     UserListItem, UserRoleUpdate, RoleResponse, RoleCreate, 

@@ -19,7 +19,6 @@ AsyncSessionLocal = async_sessionmaker(
 
 class Base(DeclarativeBase):
     pass
-# Base = declarative_base()
 
 
 # Функция для получения сессии базы данных

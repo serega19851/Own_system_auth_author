@@ -135,19 +135,3 @@ class CookieService:
             "samesite": config.cookies.COOKIE_SAMESITE,
             "max_age": config.cookies.get_refresh_cookie_max_age()
         }
-
-
-# Фабричные функции для dependency injection
-def get_password_service() -> PasswordService:
-    """Получение сервиса паролей"""
-    return PasswordService()
-
-
-def get_jwt_service() -> JWTService:
-    """Получение сервиса JWT"""
-    return JWTService()
-
-
-def get_cookie_service() -> CookieService:
-    """Получение сервиса cookies"""
-    return CookieService()
