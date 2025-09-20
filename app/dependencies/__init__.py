@@ -44,6 +44,12 @@ from .auth import (
     get_auth_service
 )
 
+# Resources зависимости
+from .resources import (
+    ResourcesDependencyFactory,
+    get_resources_service
+)
+
 __all__ = [
     # Основные зависимости
     "get_db",
@@ -74,5 +80,9 @@ __all__ = [
     
     # Auth зависимости
     "AuthDependencyFactory",
-    "get_auth_service"
+    "get_auth_service",
+    
+    # Resources зависимости
+    "ResourcesDependencyFactory",
+    "get_resources_service"
 ]
