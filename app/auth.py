@@ -1,24 +1,11 @@
 # app/auth.py
-import os
 from datetime import datetime, timedelta
 from typing import Optional
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 from fastapi import HTTPException, status
 
-# Настройки JWT
-SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-change-in-production")
-REFRESH_SECRET_KEY = os.getenv("REFRESH_SECRET_KEY", "your-refresh-secret-key-change-in-production")
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
-REFRESH_TOKEN_EXPIRE_DAYS = 7  # Refresh токен живет 7 дней
-
-# Настройки безопасности для cookies
-COOKIE_SECURE = os.getenv("ENVIRONMENT", "development") == "production"  # True для HTTPS в продакшене
-COOKIE_SAMESITE = os.getenv("COOKIE_SAMESITE", "lax")  # lax, strict, none
-COOKIE_HTTPONLY = True  # Всегда True для безопасности
-COOKIE_MAX_AGE = ACCESS_TOKEN_EXPIRE_MINUTES * 60  # В секундах
-REFRESH_COOKIE_MAX_AGE = REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60  # В секундах
+from app.config import config
 
 # Настройка хеширования паролей
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -69,12 +56,12 @@ class JWTService:
         if expires_delta:
             expire = datetime.utcnow() + expires_delta
         else:
-            expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+            expire = datetime.utcnow() + timedelta(minutes=config.jwt.ACCESS_TOKEN_EXPIRE_MINUTES)
         
         to_encode.update({"exp": expire, "type": "access"})
         
         try:
-            encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+            encoded_jwt = jwt.encode(to_encode, config.jwt.SECRET_KEY, algorithm=config.jwt.ALGORITHM)
             return encoded_jwt
         except Exception as e:
             raise HTTPException(
@@ -90,12 +77,12 @@ class JWTService:
         if expires_delta:
             expire = datetime.utcnow() + expires_delta
         else:
-            expire = datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+            expire = datetime.utcnow() + timedelta(days=config.jwt.REFRESH_TOKEN_EXPIRE_DAYS)
         
         to_encode.update({"exp": expire, "type": "refresh"})
         
         try:
-            encoded_jwt = jwt.encode(to_encode, REFRESH_SECRET_KEY, algorithm=ALGORITHM)
+            encoded_jwt = jwt.encode(to_encode, config.jwt.REFRESH_SECRET_KEY, algorithm=config.jwt.ALGORITHM)
             return encoded_jwt
         except Exception as e:
             raise HTTPException(
@@ -107,7 +94,7 @@ class JWTService:
     def verify_token(token: str) -> Optional[dict]:
         """Проверка и декодирование access JWT токена"""
         try:
-            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            payload = jwt.decode(token, config.jwt.SECRET_KEY, algorithms=[config.jwt.ALGORITHM])
             if payload.get("type") != "access":
                 return None
             return payload
@@ -118,7 +105,7 @@ class JWTService:
     def verify_refresh_token(token: str) -> Optional[dict]:
         """Проверка и декодирование refresh JWT токена"""
         try:
-            payload = jwt.decode(token, REFRESH_SECRET_KEY, algorithms=[ALGORITHM])
+            payload = jwt.decode(token, config.jwt.REFRESH_SECRET_KEY, algorithms=[config.jwt.ALGORITHM])
             if payload.get("type") != "refresh":
                 return None
             return payload
@@ -133,20 +120,20 @@ class CookieService:
     def get_cookie_settings() -> dict:
         """Получение настроек для безопасных cookies"""
         return {
-            "httponly": COOKIE_HTTPONLY,
-            "secure": COOKIE_SECURE,
-            "samesite": COOKIE_SAMESITE,
-            "max_age": COOKIE_MAX_AGE
+            "httponly": config.cookies.COOKIE_HTTPONLY,
+            "secure": config.cookies.COOKIE_SECURE,
+            "samesite": config.cookies.COOKIE_SAMESITE,
+            "max_age": config.cookies.get_cookie_max_age()
         }
     
     @staticmethod
     def get_refresh_cookie_settings() -> dict:
         """Получение настроек для refresh cookie"""
         return {
-            "httponly": COOKIE_HTTPONLY,
-            "secure": COOKIE_SECURE,
-            "samesite": COOKIE_SAMESITE,
-            "max_age": REFRESH_COOKIE_MAX_AGE
+            "httponly": config.cookies.COOKIE_HTTPONLY,
+            "secure": config.cookies.COOKIE_SECURE,
+            "samesite": config.cookies.COOKIE_SAMESITE,
+            "max_age": config.cookies.get_refresh_cookie_max_age()
         }
 
 
