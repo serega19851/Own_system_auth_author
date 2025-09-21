@@ -7,7 +7,7 @@ from app.dependencies import get_active_user, require_permission, get_resources_
 from app.models import User
 from app.schemas.resources import (
     DocumentResponse, DocumentCreate, ReportResponse, ReportCreate,
-    UserProfilePublic, SystemConfig, PermissionCheckResponse
+    UserProfilePublic, SystemConfig
 )
 from app.services.resources import ResourcesService
 
@@ -87,12 +87,4 @@ async def get_system_config(
     return await resources_service.get_system_config()
 
 
-@router.get("/check-permission/{resource_type}/{action}", response_model=PermissionCheckResponse, dependencies=[Depends(security)])
-async def check_user_permission(
-    resource_type: str,
-    action: str,
-    current_user: User = Depends(get_active_user),
-    resources_service: ResourcesService = Depends(get_resources_service)
-):
-    """Проверить разрешение пользователя"""
-    return await resources_service.check_permission(current_user, resource_type, action)
+

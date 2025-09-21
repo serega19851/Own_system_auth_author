@@ -1,8 +1,11 @@
 # app/dependencies/resources/resources_dependencies.py
+from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import Depends
 from app.services.resources import (
     ResourcesService, DocumentsService, ReportsService,
     UserProfilesResourceService, SystemResourceService, PermissionCheckService
 )
+from app.database import get_db
 
 
 class ResourcesDependencyFactory:
@@ -29,9 +32,9 @@ class ResourcesDependencyFactory:
         return SystemResourceService()
     
     @staticmethod
-    def create_permission_check_service() -> PermissionCheckService:
+    def create_permission_check_service(db: AsyncSession) -> PermissionCheckService:
         """Создать сервис проверки разрешений"""
-        return PermissionCheckService()
+        return PermissionCheckService(db)
     
     @staticmethod
     def create_resources_service(
@@ -39,7 +42,7 @@ class ResourcesDependencyFactory:
         reports_service: ReportsService,
         user_profiles_service: UserProfilesResourceService,
         system_service: SystemResourceService,
-        permission_check_service: PermissionCheckService
+        db: AsyncSession
     ) -> ResourcesService:
         """Создать координатор ресурсов"""
         return ResourcesService(
@@ -47,11 +50,11 @@ class ResourcesDependencyFactory:
             reports_service=reports_service,
             user_profiles_service=user_profiles_service,
             system_service=system_service,
-            permission_check_service=permission_check_service
+            db=db
         )
 
 
-async def get_resources_service() -> ResourcesService:
+async def get_resources_service(db: AsyncSession = Depends(get_db)) -> ResourcesService:
     """Dependency для получения ResourcesService"""
     factory = ResourcesDependencyFactory()
     
@@ -60,7 +63,7 @@ async def get_resources_service() -> ResourcesService:
     reports_service = factory.create_reports_service()
     user_profiles_service = factory.create_user_profiles_service()
     system_service = factory.create_system_service()
-    permission_check_service = factory.create_permission_check_service()
+    permission_check_service = factory.create_permission_check_service(db)
     
     # Создание координатора ресурсов
     return factory.create_resources_service(
@@ -68,5 +71,5 @@ async def get_resources_service() -> ResourcesService:
         reports_service=reports_service,
         user_profiles_service=user_profiles_service,
         system_service=system_service,
-        permission_check_service=permission_check_service
+        db=db
     )

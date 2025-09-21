@@ -75,10 +75,10 @@ class ResourcesService(BaseService):
             self._handle_service_error(e, "create_report")
             raise
     
-    async def export_reports(self, user_email: str) -> dict:
+    async def export_reports(self, format: str, user_email: str) -> dict:
         """Экспортировать отчеты"""
         try:
-            return await self.reports_service.export_reports(user_email)
+            return await self.reports_service.export_reports(format, user_email)
         except Exception as e:
             self._handle_service_error(e, "export_reports")
             raise
