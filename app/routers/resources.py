@@ -79,11 +79,12 @@ async def get_user_profiles(
     return await resources_service.get_user_profiles()
 
 
-@router.get("/system/config", response_model=List[SystemConfig], dependencies=[Depends(security)])
+@router.get("/system/config", response_model=List[SystemConfig])
 async def get_system_config(
+    current_user: User = Depends(require_permission("admin_system_config")),
     resources_service: ResourcesService = Depends(get_resources_service)
 ):
-    """Получить системную конфигурацию"""
+    """Получить системную конфигурацию - ТРЕБУЕТ РАЗРЕШЕНИЕ admin_system_config"""
     return await resources_service.get_system_config()
 
 
