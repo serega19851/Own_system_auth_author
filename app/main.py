@@ -1,7 +1,20 @@
 # app/main.py
 from fastapi import FastAPI
 from fastapi.security import HTTPBearer
+from fastapi.exceptions import RequestValidationError
+from sqlalchemy.exc import SQLAlchemyError
+
 from app.routers import users, admin, resources, auth
+from app.handlers.exception_handlers import GlobalExceptionHandler
+from app.exceptions import (
+    SystemException, AuthenticationException, AuthorizationException,
+    ValidationException, ResourceNotFoundException
+)
+from app.middleware.exception_middleware import ExceptionMiddleware
+from app.utils.logger import setup_logging
+
+# Настройка логирования
+setup_logging()
 
 # Настройка безопасности для Swagger UI
 security = HTTPBearer()
@@ -67,6 +80,18 @@ def custom_openapi():
     return app.openapi_schema
 
 app.openapi = custom_openapi
+
+# Регистрация обработчиков исключений
+app.add_exception_handler(SystemException, GlobalExceptionHandler.system_exception_handler)
+app.add_exception_handler(AuthenticationException, GlobalExceptionHandler.auth_exception_handler)
+app.add_exception_handler(AuthorizationException, GlobalExceptionHandler.authorization_exception_handler)
+app.add_exception_handler(ValidationException, GlobalExceptionHandler.validation_exception_handler)
+app.add_exception_handler(ResourceNotFoundException, GlobalExceptionHandler.resource_not_found_handler)
+app.add_exception_handler(SQLAlchemyError, GlobalExceptionHandler.database_exception_handler)
+app.add_exception_handler(RequestValidationError, GlobalExceptionHandler.validation_error_handler)
+
+# Добавление middleware для глобальной обработки исключений
+app.add_middleware(ExceptionMiddleware)
 
 # Подключение роутеров
 app.include_router(auth.router, prefix="/api/v1")
