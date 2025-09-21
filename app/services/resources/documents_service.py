@@ -2,7 +2,6 @@
 
 from datetime import datetime
 from typing import List, Optional
-from fastapi import status
 
 from app.schemas.resources import DocumentResponse, DocumentCreate
 from ..base_service import BaseService
@@ -14,7 +13,6 @@ class DocumentsService(BaseService):
     
     def __init__(self):
         super().__init__()
-        # Перенос MOCK_DOCUMENTS из resources.py
         self.mock_documents = [
             {
                 "id": 1,

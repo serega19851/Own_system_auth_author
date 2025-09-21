@@ -11,7 +11,6 @@ from ...repositories.permission_repository import PermissionRepository
 from ...validators.system_validators import SystemValidators
 from ...mappers.system_mappers import SystemMappers
 from ...schemas.admin import RoleResponse, RoleCreate
-from ...models.role import Role
 
 
 from ..base_service import BaseService
@@ -117,17 +116,17 @@ class RoleManagementService(BaseService):
                     role_data.permission_names, 
                     self.permission_repo
                 )
+
+            # Подготовка данных для создания роли
+            role_data_dict = {
+                "name": role_data.name.strip(),
+                "description": role_data.description,
+                "is_active": True,
+                "created_at": datetime.utcnow()
+            }
             
-            # Создаем новую роль
-            new_role = Role(
-                name=role_data.name.strip(),
-                description=role_data.description,
-                is_active=True,
-                created_at=datetime.utcnow()
-            )
-            
-            # Сохраняем роль в БД
-            created_role = await self.role_repo.create(new_role)
+            # Создаем новую роль через репозиторий
+            created_role = await self.role_repo.create(role_data_dict)
             
             # Назначаем разрешения роли если они указаны
             if role_data.permission_names:

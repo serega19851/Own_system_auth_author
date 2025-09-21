@@ -12,7 +12,6 @@ from .admin import (
     UserManagementService,
     RoleManagementService,
     PermissionService,
-    AdminPanelService
 )
 
 __all__ = [
@@ -24,5 +23,4 @@ __all__ = [
     "UserManagementService", 
     "RoleManagementService",
     "PermissionService",
-    "AdminPanelService"
 ]

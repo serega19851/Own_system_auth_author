@@ -13,7 +13,6 @@ class ReportsService(BaseService):
     
     def __init__(self):
         super().__init__()
-        # Перенос MOCK_REPORTS из resources.py
         self.mock_reports = [
             {
                 "id": 1,

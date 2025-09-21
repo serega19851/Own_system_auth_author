@@ -1,17 +1,18 @@
 # app/services/resources/resources_service.py
 
 from typing import List
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import User
 from app.schemas.resources import (
     DocumentResponse, DocumentCreate, ReportResponse, ReportCreate,
     UserProfilePublic, SystemConfig, PermissionCheckResponse
 )
+from app.repositories.user_repository import UserRepository
 from .documents_service import DocumentsService
 from .reports_service import ReportsService
 from .user_profiles_resource_service import UserProfilesResourceService
 from .system_resource_service import SystemResourceService
-from .permission_check_service import PermissionCheckService
 
 
 from ..base_service import BaseService
@@ -24,13 +25,13 @@ class ResourcesService(BaseService):
                  reports_service: ReportsService,
                  user_profiles_service: UserProfilesResourceService,
                  system_service: SystemResourceService,
-                 permission_check_service: PermissionCheckService):
+                 db: AsyncSession):
         super().__init__()
         self.documents_service = documents_service
         self.reports_service = reports_service
         self.user_profiles_service = user_profiles_service
         self.system_service = system_service
-        self.permission_check_service = permission_check_service
+        self.user_repository = UserRepository(db)
     
     # Документы
     async def get_documents(self) -> List[DocumentResponse]:
@@ -102,9 +103,58 @@ class ResourcesService(BaseService):
     
     # Проверка разрешений
     async def check_permission(self, user: User, resource: str, action: str) -> PermissionCheckResponse:
-        """Проверить разрешение пользователя"""
+        """
+        Проверить разрешение пользователя
+        Собственная логика проверки через репозиторий
+        """
         try:
-            return await self.permission_check_service.check_user_permission(user, resource, action)
+            # Получаем пользователя с полной информацией о ролях и разрешениях
+            user_with_permissions = await self.user_repository.get_user_with_roles_and_permissions(user.id)
+            
+            if not user_with_permissions:
+                return PermissionCheckResponse(
+                    has_permission=False,
+                    resource_type=resource,
+                    action=action,
+                    user_id=user.id,
+                    message="Пользователь не найден"
+                )
+            
+            # Проверяем активность пользователя
+            if not user_with_permissions.is_active:
+                return PermissionCheckResponse(
+                    has_permission=False,
+                    resource_type=resource,
+                    action=action,
+                    user_id=user.id,
+                    message="Пользователь неактивен"
+                )
+            
+            # Собираем все разрешения пользователя из всех его ролей
+            user_permissions = []
+            for role in user_with_permissions.roles:
+                if role.is_active:  # Проверяем только активные роли
+                    for permission in role.permissions:
+                        user_permissions.append(permission)
+            
+            # Формируем имя разрешения в формате "resource_action"
+            required_permission_name = f"{resource}_{action}"
+            
+            # Проверяем наличие требуемого разрешения
+            has_permission = any(
+                perm.name == required_permission_name or 
+                (perm.resource_type == resource and perm.action == action)
+                for perm in user_permissions
+            )
+            
+            return PermissionCheckResponse(
+                has_permission=has_permission,
+                resource_type=resource,
+                action=action,
+                user_id=user.id,
+                message="Доступ разрешен" if has_permission else f"Нет разрешения '{required_permission_name}'"
+            )
+            
         except Exception as e:
             self._handle_service_error(e, "check_permission")
             raise

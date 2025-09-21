@@ -2,7 +2,7 @@
 Сервис аутентификации - координатор всех операций auth домена
 """
 
-from fastapi import status, Response, Request
+from fastapi import Response, Request
 
 from app.services.user.user_auth_service import UserService
 from app.auth import JWTService, CookieService
@@ -11,7 +11,7 @@ from app.schemas.auth import (
     RefreshTokenRequest, RefreshTokenResponse
 )
 from ..base_service import BaseService
-from ...exceptions.auth_exceptions import AuthenticationException, AuthorizationException
+from ...exceptions.auth_exceptions import AuthenticationException
 from ...exceptions.business_exceptions import UserException
 
 
