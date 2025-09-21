@@ -24,7 +24,7 @@ COPY . .
 RUN mkdir -p logs
 
 # Устанавливаем права доступа
-RUN chmod +x seed_data.py
+RUN chmod +x init_test_data.py
 
 # Открываем порт
 EXPOSE 8000
