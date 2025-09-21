@@ -7,7 +7,7 @@ from app.config import config
 
 engine = create_async_engine(
     config.db.DATABASE_URL,
-    echo=True,  # Включает логирование SQL запросов
+    echo=False,  # Отключаем подробное логирование SQL запросов
     future=True
 )
 
