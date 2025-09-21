@@ -1,6 +1,6 @@
 # app/core_dependencies.py
 from typing import Optional
-from fastapi import Depends, HTTPException, status, Request
+from fastapi import Depends, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -9,6 +9,7 @@ from sqlalchemy.orm import selectinload
 from app.database import get_db
 from app.models import User, Role
 from app.auth import JWTService
+from app.exceptions.auth_exceptions import AuthenticationException, AuthorizationException
 
 # Настройка безопасности (опциональная для поддержки cookies)
 security = HTTPBearer(auto_error=False)
@@ -47,29 +48,17 @@ async def get_current_user(
     token = get_token_from_request(request, credentials)
     
     if not token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authorization credentials required",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise AuthenticationException("Authorization credentials required", "NO_TOKEN_PROVIDED")
     
     # Декодирование JWT токена
     token_data = jwt_service.verify_token(token)
     if not token_data:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise AuthenticationException("Invalid or expired token", "INVALID_TOKEN")
     
     # Получаем email из токена
     email = token_data.get("sub")
     if not email:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token payload",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise AuthenticationException("Invalid token payload", "INVALID_TOKEN_PAYLOAD")
     
     # Поиск пользователя в базе данных с загрузкой ролей
     stmt = select(User).options(selectinload(User.roles)).where(User.email == email)
@@ -77,11 +66,7 @@ async def get_current_user(
     user = result.scalar_one_or_none()
     
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise AuthenticationException("User not found", "USER_NOT_FOUND")
     
     return user
 
@@ -91,10 +76,7 @@ async def get_active_user(current_user: User = Depends(get_current_user)) -> Use
     Получение активного пользователя
     """
     if not current_user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="User account is inactive"
-        )
+        raise AuthorizationException("User account is inactive", "USER_INACTIVE")
     return current_user
 
 
@@ -106,10 +88,7 @@ async def get_admin_user(current_user: User = Depends(get_active_user)) -> User:
     user_role_names = [role.name for role in current_user.roles]
     
     if "admin" not in user_role_names:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin access required"
-        )
+        raise AuthorizationException("Admin access required", "ADMIN_ACCESS_REQUIRED")
     
     return current_user
 
@@ -142,10 +121,7 @@ def require_permission(permission_name: str):
         
         # Проверяем наличие требуемого разрешения
         if permission_name not in user_permissions:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Permission '{permission_name}' required"
-            )
+            raise AuthorizationException(f"Permission '{permission_name}' required", "PERMISSION_REQUIRED")
         
         return current_user
     

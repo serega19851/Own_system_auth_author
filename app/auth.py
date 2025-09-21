@@ -3,9 +3,10 @@ from datetime import datetime, timedelta
 from typing import Optional
 from passlib.context import CryptContext
 from jose import JWTError, jwt
-from fastapi import HTTPException, status
+from fastapi import status
 
 from app.config import config
+from app.exceptions.auth_exceptions import PasswordException, TokenException
 
 # Настройка хеширования паролей
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -20,10 +21,7 @@ class PasswordService:
         try:
             return pwd_context.hash(password)
         except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Ошибка при хешировании пароля"
-            )
+            raise PasswordException("Ошибка при хешировании пароля", "PASSWORD_HASH_ERROR")
     
     @staticmethod
     def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -64,10 +62,7 @@ class JWTService:
             encoded_jwt = jwt.encode(to_encode, config.jwt.SECRET_KEY, algorithm=config.jwt.ALGORITHM)
             return encoded_jwt
         except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Ошибка при создании access токена"
-            )
+            raise TokenException("Ошибка при создании access токена", "ACCESS_TOKEN_CREATION_ERROR")
     
     @staticmethod
     def create_refresh_token(data: dict, expires_delta: Optional[timedelta] = None):
@@ -85,10 +80,7 @@ class JWTService:
             encoded_jwt = jwt.encode(to_encode, config.jwt.REFRESH_SECRET_KEY, algorithm=config.jwt.ALGORITHM)
             return encoded_jwt
         except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Ошибка при создании refresh токена"
-            )
+            raise TokenException("Ошибка при создании refresh токена", "REFRESH_TOKEN_CREATION_ERROR")
     
     @staticmethod
     def verify_token(token: str) -> Optional[dict]:
