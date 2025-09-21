@@ -5,6 +5,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from .base_repository import BaseRepository
 from ..models.permission import Permission
+from ..exceptions.database_exceptions import DatabaseException
 
 
 class PermissionRepository(BaseRepository[Permission]):
@@ -33,7 +34,8 @@ class PermissionRepository(BaseRepository[Permission]):
             return result.scalars().all()
         except SQLAlchemyError as e:
             
-            raise e
+            self.logger.error(f"Database error: {str(e)}")
+            raise DatabaseException("Ошибка в операции с разрешениями")
     
     async def get_by_name(self, perm_name: str) -> Optional[Permission]:
         """
@@ -52,7 +54,8 @@ class PermissionRepository(BaseRepository[Permission]):
             return result.scalar_one_or_none()
         except SQLAlchemyError as e:
             
-            raise e
+            self.logger.error(f"Database error: {str(e)}")
+            raise DatabaseException("Ошибка в операции с разрешениями")
     
     async def get_ordered_by_resource_type(self) -> List[Permission]:
         """
@@ -68,7 +71,8 @@ class PermissionRepository(BaseRepository[Permission]):
             return result.scalars().all()
         except SQLAlchemyError as e:
             
-            raise e
+            self.logger.error(f"Database error: {str(e)}")
+            raise DatabaseException("Ошибка в операции с разрешениями")
     
     async def get_by_resource_type(self, resource_type: str) -> List[Permission]:
         """
@@ -89,7 +93,8 @@ class PermissionRepository(BaseRepository[Permission]):
             return result.scalars().all()
         except SQLAlchemyError as e:
             
-            raise e
+            self.logger.error(f"Database error: {str(e)}")
+            raise DatabaseException("Ошибка в операции с разрешениями")
     
     async def get_by_action(self, action: str) -> List[Permission]:
         """
@@ -110,7 +115,8 @@ class PermissionRepository(BaseRepository[Permission]):
             return result.scalars().all()
         except SQLAlchemyError as e:
             
-            raise e
+            self.logger.error(f"Database error: {str(e)}")
+            raise DatabaseException("Ошибка в операции с разрешениями")
     
     async def get_by_resource_and_action(self, resource_type: str, action: str) -> Optional[Permission]:
         """
@@ -133,7 +139,8 @@ class PermissionRepository(BaseRepository[Permission]):
             return result.scalar_one_or_none()
         except SQLAlchemyError as e:
             
-            raise e
+            self.logger.error(f"Database error: {str(e)}")
+            raise DatabaseException("Ошибка в операции с разрешениями")
     
     async def get_unique_resource_types(self) -> List[str]:
         """
@@ -149,7 +156,8 @@ class PermissionRepository(BaseRepository[Permission]):
             return [row[0] for row in result.fetchall()]
         except SQLAlchemyError as e:
             
-            raise e
+            self.logger.error(f"Database error: {str(e)}")
+            raise DatabaseException("Ошибка в операции с разрешениями")
     
     async def get_unique_actions(self) -> List[str]:
         """
@@ -165,7 +173,8 @@ class PermissionRepository(BaseRepository[Permission]):
             return [row[0] for row in result.fetchall()]
         except SQLAlchemyError as e:
             
-            raise e
+            self.logger.error(f"Database error: {str(e)}")
+            raise DatabaseException("Ошибка в операции с разрешениями")
     
     async def search_permissions(self, search_term: str) -> List[Permission]:
         """
@@ -190,7 +199,8 @@ class PermissionRepository(BaseRepository[Permission]):
             return result.scalars().all()
         except SQLAlchemyError as e:
             
-            raise e
+            self.logger.error(f"Database error: {str(e)}")
+            raise DatabaseException("Ошибка в операции с разрешениями")
     
     async def get_permissions_count_by_resource_type(self) -> List[dict]:
         """
@@ -214,7 +224,8 @@ class PermissionRepository(BaseRepository[Permission]):
             ]
         except SQLAlchemyError as e:
             
-            raise e
+            self.logger.error(f"Database error: {str(e)}")
+            raise DatabaseException("Ошибка в операции с разрешениями")
     
     async def check_permission_exists(self, resource_type: str, action: str) -> bool:
         """
@@ -237,4 +248,5 @@ class PermissionRepository(BaseRepository[Permission]):
             return result.scalar() > 0
         except SQLAlchemyError as e:
             
-            raise e
+            self.logger.error(f"Database error: {str(e)}")
+            raise DatabaseException("Ошибка в операции с разрешениями")

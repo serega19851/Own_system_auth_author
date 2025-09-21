@@ -8,6 +8,7 @@ from .base_repository import BaseRepository
 from ..models.role import Role
 from ..models.permission import Permission
 from ..models.associations import role_permissions
+from ..exceptions.database_exceptions import DatabaseException
 
 
 class RoleRepository(BaseRepository[Role]):
@@ -33,7 +34,8 @@ class RoleRepository(BaseRepository[Role]):
             return result.scalars().all()
         except SQLAlchemyError as e:
             
-            raise e
+            self.logger.error(f"Database error: {str(e)}")
+            raise DatabaseException("Ошибка в операции с ролями")
     
     async def get_role_with_permissions(self, role_id: int) -> Optional[Role]:
         """
@@ -54,7 +56,8 @@ class RoleRepository(BaseRepository[Role]):
             return result.scalar_one_or_none()
         except SQLAlchemyError as e:
             
-            raise e
+            self.logger.error(f"Database error: {str(e)}")
+            raise DatabaseException("Ошибка в операции с ролями")
     
     async def get_by_names(self, role_names: List[str]) -> List[Role]:
         """
@@ -73,7 +76,8 @@ class RoleRepository(BaseRepository[Role]):
             return result.scalars().all()
         except SQLAlchemyError as e:
             
-            raise e
+            self.logger.error(f"Database error: {str(e)}")
+            raise DatabaseException("Ошибка в операции с ролями")
     
     async def get_by_name(self, role_name: str) -> Optional[Role]:
         """
@@ -92,7 +96,8 @@ class RoleRepository(BaseRepository[Role]):
             return result.scalar_one_or_none()
         except SQLAlchemyError as e:
             
-            raise e
+            self.logger.error(f"Database error: {str(e)}")
+            raise DatabaseException("Ошибка в операции с ролями")
     
     async def assign_permissions(self, role_id: int, permission_ids: List[int]) -> bool:
         """
@@ -127,7 +132,8 @@ class RoleRepository(BaseRepository[Role]):
             
         except SQLAlchemyError as e:
             
-            raise e
+            self.logger.error(f"Database error: {str(e)}")
+            raise DatabaseException("Ошибка в операции с ролями")
     
     async def add_permissions(self, role_id: int, permission_ids: List[int]) -> bool:
         """
@@ -163,7 +169,8 @@ class RoleRepository(BaseRepository[Role]):
             
         except SQLAlchemyError as e:
             
-            raise e
+            self.logger.error(f"Database error: {str(e)}")
+            raise DatabaseException("Ошибка в операции с ролями")
     
     async def remove_permissions(self, role_id: int, permission_ids: List[int]) -> bool:
         """
@@ -193,7 +200,8 @@ class RoleRepository(BaseRepository[Role]):
             
         except SQLAlchemyError as e:
             
-            raise e
+            self.logger.error(f"Database error: {str(e)}")
+            raise DatabaseException("Ошибка в операции с ролями")
     
     async def check_role_exists(self, name: str) -> bool:
         """
@@ -212,7 +220,8 @@ class RoleRepository(BaseRepository[Role]):
             return result.scalar() > 0
         except SQLAlchemyError as e:
             
-            raise e
+            self.logger.error(f"Database error: {str(e)}")
+            raise DatabaseException("Ошибка в операции с ролями")
     
     async def get_active_roles_count(self) -> int:
         """
@@ -228,7 +237,8 @@ class RoleRepository(BaseRepository[Role]):
             return result.scalar()
         except SQLAlchemyError as e:
             
-            raise e
+            self.logger.error(f"Database error: {str(e)}")
+            raise DatabaseException("Ошибка в операции с ролями")
     
     async def get_inactive_roles_count(self) -> int:
         """
@@ -244,4 +254,5 @@ class RoleRepository(BaseRepository[Role]):
             return result.scalar()
         except SQLAlchemyError as e:
             
-            raise e
+            self.logger.error(f"Database error: {str(e)}")
+            raise DatabaseException("Ошибка в операции с ролями")

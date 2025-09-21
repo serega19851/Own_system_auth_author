@@ -9,6 +9,7 @@ from .base_repository import BaseRepository
 from ..models.user import User
 from ..models.role import Role
 from ..models.associations import user_roles
+from ..exceptions.database_exceptions import DatabaseException
 
 
 class UserRepository(BaseRepository[User]):
@@ -33,8 +34,8 @@ class UserRepository(BaseRepository[User]):
             )
             return result.scalars().all()
         except SQLAlchemyError as e:
-            
-            raise e
+            self.logger.error(f"Database error in get_users_with_roles: {str(e)}")
+            raise DatabaseException("Ошибка при получении пользователей с ролями")
     
     async def get_user_with_roles(self, user_id: int) -> Optional[User]:
         """
@@ -54,8 +55,8 @@ class UserRepository(BaseRepository[User]):
             )
             return result.scalar_one_or_none()
         except SQLAlchemyError as e:
-            
-            raise e
+            self.logger.error(f"Database error in get_user_with_roles: {str(e)}")
+            raise DatabaseException(f"Ошибка при получении пользователя {user_id} с ролями")
     
     async def update_user_roles(self, user_id: int, role_ids: List[int]) -> bool:
         """
@@ -89,7 +90,8 @@ class UserRepository(BaseRepository[User]):
             return True
             
         except SQLAlchemyError as e:
-            raise e
+            self.logger.error(f"Database error in update_user_roles: {str(e)}")
+            raise DatabaseException(f"Ошибка при обновлении ролей пользователя {user_id}")
     
     async def get_active_users_count(self) -> int:
         """
@@ -105,7 +107,8 @@ class UserRepository(BaseRepository[User]):
             return result.scalar()
         except SQLAlchemyError as e:
             
-            raise e
+            self.logger.error(f"Database error: {str(e)}")
+            raise DatabaseException("Ошибка в операции с пользователями")
     
     async def get_inactive_users_count(self) -> int:
         """
@@ -121,7 +124,8 @@ class UserRepository(BaseRepository[User]):
             return result.scalar()
         except SQLAlchemyError as e:
             
-            raise e
+            self.logger.error(f"Database error: {str(e)}")
+            raise DatabaseException("Ошибка в операции с пользователями")
     
     async def get_by_email(self, email: str) -> Optional[User]:
         """
@@ -140,7 +144,8 @@ class UserRepository(BaseRepository[User]):
             return result.scalar_one_or_none()
         except SQLAlchemyError as e:
             
-            raise e
+            self.logger.error(f"Database error: {str(e)}")
+            raise DatabaseException("Ошибка в операции с пользователями")
     
     async def get_users_by_role(self, role_name: str) -> List[User]:
         """
@@ -163,7 +168,8 @@ class UserRepository(BaseRepository[User]):
             return result.scalars().all()
         except SQLAlchemyError as e:
             
-            raise e
+            self.logger.error(f"Database error: {str(e)}")
+            raise DatabaseException("Ошибка в операции с пользователями")
     
     async def search_users(self, search_term: str, limit: int = 20) -> List[User]:
         """
@@ -192,7 +198,8 @@ class UserRepository(BaseRepository[User]):
             return result.scalars().all()
         except SQLAlchemyError as e:
             
-            raise e
+            self.logger.error(f"Database error: {str(e)}")
+            raise DatabaseException("Ошибка в операции с пользователями")
     
     async def get_user_with_roles_and_permissions(self, user_id: int) -> Optional[User]:
         """
@@ -214,7 +221,8 @@ class UserRepository(BaseRepository[User]):
             )
             return result.scalar_one_or_none()
         except SQLAlchemyError as e:
-            raise e
+            self.logger.error(f"Database error: {str(e)}")
+            raise DatabaseException("Ошибка в операции с пользователями")
     
     async def update_user_profile_data(self, user_id: int, update_data: Dict[str, Any]) -> Optional[User]:
         """
@@ -241,7 +249,8 @@ class UserRepository(BaseRepository[User]):
             
         except SQLAlchemyError as e:
             await self.db.rollback()
-            raise e
+            self.logger.error(f"Database error: {str(e)}")
+            raise DatabaseException("Ошибка в операции с пользователями")
     
     async def deactivate_user(self, user_id: int) -> bool:
         """
@@ -269,4 +278,5 @@ class UserRepository(BaseRepository[User]):
             
         except SQLAlchemyError as e:
             await self.db.rollback()
-            raise e
+            self.logger.error(f"Database error: {str(e)}")
+            raise DatabaseException("Ошибка в операции с пользователями")

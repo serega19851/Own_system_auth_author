@@ -5,6 +5,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from .base_repository import BaseRepository
 from ..models.resource import Resource
+from ..exceptions.database_exceptions import DatabaseException
 
 
 class ResourceRepository(BaseRepository[Resource]):
@@ -35,7 +36,8 @@ class ResourceRepository(BaseRepository[Resource]):
             return result.scalars().all()
         except SQLAlchemyError as e:
             
-            raise e
+            self.logger.error(f"Database error: {str(e)}")
+            raise DatabaseException("Ошибка в операции с ресурсами")
     
     async def get_active_resources(self) -> List[Resource]:
         """
@@ -53,7 +55,8 @@ class ResourceRepository(BaseRepository[Resource]):
             return result.scalars().all()
         except SQLAlchemyError as e:
             
-            raise e
+            self.logger.error(f"Database error: {str(e)}")
+            raise DatabaseException("Ошибка в операции с ресурсами")
     
     async def get_unique_resource_types(self) -> List[str]:
         """
@@ -69,7 +72,8 @@ class ResourceRepository(BaseRepository[Resource]):
             return [row[0] for row in result.fetchall()]
         except SQLAlchemyError as e:
             
-            raise e
+            self.logger.error(f"Database error: {str(e)}")
+            raise DatabaseException("Ошибка в операции с ресурсами")
     
     async def get_active_resources_count(self) -> int:
         """
@@ -85,7 +89,8 @@ class ResourceRepository(BaseRepository[Resource]):
             return result.scalar()
         except SQLAlchemyError as e:
             
-            raise e
+            self.logger.error(f"Database error: {str(e)}")
+            raise DatabaseException("Ошибка в операции с ресурсами")
     
     async def get_inactive_resources_count(self) -> int:
         """
@@ -101,7 +106,8 @@ class ResourceRepository(BaseRepository[Resource]):
             return result.scalar()
         except SQLAlchemyError as e:
             
-            raise e
+            self.logger.error(f"Database error: {str(e)}")
+            raise DatabaseException("Ошибка в операции с ресурсами")
     
     async def get_resources_count_by_type(self) -> List[dict]:
         """
@@ -125,7 +131,8 @@ class ResourceRepository(BaseRepository[Resource]):
             ]
         except SQLAlchemyError as e:
             
-            raise e
+            self.logger.error(f"Database error: {str(e)}")
+            raise DatabaseException("Ошибка в операции с ресурсами")
     
     async def search_resources(self, search_term: str) -> List[Resource]:
         """
@@ -149,4 +156,5 @@ class ResourceRepository(BaseRepository[Resource]):
             return result.scalars().all()
         except SQLAlchemyError as e:
             
-            raise e
+            self.logger.error(f"Database error: {str(e)}")
+            raise DatabaseException("Ошибка в операции с ресурсами")
