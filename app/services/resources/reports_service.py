@@ -6,10 +6,13 @@ from typing import List
 from app.schemas.resources import ReportResponse, ReportCreate
 
 
-class ReportsService:
+from ..base_service import BaseService
+
+class ReportsService(BaseService):
     """Сервис для управления отчетами с mock данными"""
     
     def __init__(self):
+        super().__init__()
         # Перенос MOCK_REPORTS из resources.py
         self.mock_reports = [
             {
@@ -32,31 +35,43 @@ class ReportsService:
     
     async def get_all_reports(self) -> List[ReportResponse]:
         """Получить все отчеты"""
-        return [ReportResponse(**report) for report in self.mock_reports]
+        try:
+            return [ReportResponse(**report) for report in self.mock_reports]
+        except Exception as e:
+            self._handle_service_error(e, "get_all_reports")
+            raise
     
     async def create_report(self, report_data: ReportCreate, generator_email: str) -> ReportResponse:
         """Создать новый отчет"""
-        new_report = {
-            "id": self._generate_report_id(),
-            "name": report_data.name,
-            "report_type": report_data.report_type,
-            "data": report_data.data,
-            "generated_at": datetime.utcnow(),
-            "generated_by": generator_email
-        }
-        self.mock_reports.append(new_report)
-        return ReportResponse(**new_report)
+        try:
+            new_report = {
+                "id": self._generate_report_id(),
+                "name": report_data.name,
+                "report_type": report_data.report_type,
+                "data": report_data.data,
+                "generated_at": datetime.utcnow(),
+                "generated_by": generator_email
+            }
+            self.mock_reports.append(new_report)
+            return ReportResponse(**new_report)
+        except Exception as e:
+            self._handle_service_error(e, "create_report")
+            raise
     
     async def export_reports(self, format: str, user_email: str) -> dict:
         """Экспортировать отчеты"""
-        export_data = self._prepare_export_data(format)
-        return {
-            "message": f"Reports exported in {format} format",
-            "total_reports": len(self.mock_reports),
-            "exported_by": user_email,
-            "export_time": datetime.utcnow(),
-            "download_url": export_data["download_url"]
-        }
+        try:
+            export_data = self._prepare_export_data(format)
+            return {
+                "message": f"Reports exported in {format} format",
+                "total_reports": len(self.mock_reports),
+                "exported_by": user_email,
+                "export_time": datetime.utcnow(),
+                "download_url": export_data["download_url"]
+            }
+        except Exception as e:
+            self._handle_service_error(e, "export_reports")
+            raise
     
     def _generate_report_id(self) -> int:
         """Сгенерировать новый ID отчета"""

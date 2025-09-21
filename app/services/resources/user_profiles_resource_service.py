@@ -6,10 +6,13 @@ from typing import List
 from app.schemas.resources import UserProfilePublic
 
 
-class UserProfilesResourceService:
+from ..base_service import BaseService
+
+class UserProfilesResourceService(BaseService):
     """Сервис для получения профилей пользователей как ресурса"""
     
     def __init__(self):
+        super().__init__()
         # Mock данные профилей из resources.py
         self.mock_profiles = [
             {
@@ -37,4 +40,16 @@ class UserProfilesResourceService:
     
     async def get_user_profiles(self) -> List[UserProfilePublic]:
         """Получить публичные профили пользователей"""
-        return [UserProfilePublic(**profile) for profile in self.mock_profiles]
+        try:
+            return [UserProfilePublic(**profile) for profile in self.mock_profiles]
+        except Exception as e:
+            self._handle_service_error(e, "get_user_profiles")
+            raise
+    
+    async def get_all_profiles(self) -> List[UserProfilePublic]:
+        """Получить все профили пользователей (алиас для совместимости с ResourcesService)"""
+        try:
+            return await self.get_user_profiles()
+        except Exception as e:
+            self._handle_service_error(e, "get_all_profiles")
+            raise

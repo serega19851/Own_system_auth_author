@@ -6,10 +6,13 @@ from typing import List
 from app.schemas.resources import SystemConfig
 
 
-class SystemResourceService:
+from ..base_service import BaseService
+
+class SystemResourceService(BaseService):
     """Сервис для получения системной конфигурации"""
     
     def __init__(self):
+        super().__init__()
         # Mock данные конфигурации из resources.py
         self.mock_config = [
             {
@@ -37,7 +40,11 @@ class SystemResourceService:
     
     async def get_system_config(self) -> List[SystemConfig]:
         """Получить системную конфигурацию"""
-        return [SystemConfig(**cfg) for cfg in self.mock_config]
+        try:
+            return [SystemConfig(**cfg) for cfg in self.mock_config]
+        except Exception as e:
+            self._handle_service_error(e, "get_system_config")
+            raise
     
     def _get_default_config(self) -> List[dict]:
         """Получить конфигурацию по умолчанию"""

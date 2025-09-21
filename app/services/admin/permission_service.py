@@ -10,7 +10,9 @@ from ...mappers.system_mappers import SystemMappers
 from ...schemas.admin import PermissionResponse
 
 
-class PermissionService:
+from ..base_service import BaseService
+
+class PermissionService(BaseService):
     """
     Сервис для управления разрешениями в контексте админ-панели
     Содержит всю бизнес-логику для операций с разрешениями
@@ -21,6 +23,7 @@ class PermissionService:
         permission_repo: PermissionRepository,
         mappers: SystemMappers
     ):
+        super().__init__()
         self.permission_repo = permission_repo
         self.mappers = mappers
     
@@ -31,11 +34,15 @@ class PermissionService:
         Returns:
             List[PermissionResponse]: Список всех разрешений
         """
-        # Получаем все разрешения, отсортированные по типу ресурса
-        permissions = await self.permission_repo.get_ordered_by_resource_type()
-        
-        # Преобразуем в схемы ответа
-        return self.mappers.permissions_to_responses(permissions)
+        try:
+            # Получаем все разрешения, отсортированные по типу ресурса
+            permissions = await self.permission_repo.get_ordered_by_resource_type()
+            
+            # Преобразуем в схемы ответа
+            return self.mappers.permissions_to_responses(permissions)
+        except Exception as e:
+            self._handle_service_error(e, "get_all_permissions")
+            raise
     
     async def get_permissions_by_resource_type(self, resource_type: str) -> List[PermissionResponse]:
         """
@@ -47,8 +54,12 @@ class PermissionService:
         Returns:
             List[PermissionResponse]: Список разрешений для указанного типа ресурса
         """
-        permissions = await self.permission_repo.get_by_resource_type(resource_type)
-        return self.mappers.permissions_to_responses(permissions)
+        try:
+            permissions = await self.permission_repo.get_by_resource_type(resource_type)
+            return self.mappers.permissions_to_responses(permissions)
+        except Exception as e:
+            self._handle_service_error(e, "get_permissions_by_resource_type")
+            raise
     
     async def get_permissions_by_action(self, action: str) -> List[PermissionResponse]:
         """
@@ -60,8 +71,12 @@ class PermissionService:
         Returns:
             List[PermissionResponse]: Список разрешений для указанного действия
         """
-        permissions = await self.permission_repo.get_by_action(action)
-        return self.mappers.permissions_to_responses(permissions)
+        try:
+            permissions = await self.permission_repo.get_by_action(action)
+            return self.mappers.permissions_to_responses(permissions)
+        except Exception as e:
+            self._handle_service_error(e, "get_permissions_by_action")
+            raise
     
     async def get_permissions_with_pagination(
         self, 
@@ -78,15 +93,19 @@ class PermissionService:
         Returns:
             List[PermissionResponse]: Список разрешений
         """
-        offset = (page - 1) * size
-        
-        # Получаем разрешения с пагинацией
-        permissions = await self.permission_repo.get_with_limit(
-            limit=size, 
-            offset=offset
-        )
-        
-        return self.mappers.permissions_to_responses(permissions)
+        try:
+            offset = (page - 1) * size
+            
+            # Получаем разрешения с пагинацией
+            permissions = await self.permission_repo.get_with_limit(
+                limit=size, 
+                offset=offset
+            )
+            
+            return self.mappers.permissions_to_responses(permissions)
+        except Exception as e:
+            self._handle_service_error(e, "get_permissions_with_pagination")
+            raise
     
     async def search_permissions(self, search_term: str) -> List[PermissionResponse]:
         """
@@ -98,8 +117,12 @@ class PermissionService:
         Returns:
             List[PermissionResponse]: Найденные разрешения
         """
-        permissions = await self.permission_repo.search_permissions(search_term)
-        return self.mappers.permissions_to_responses(permissions)
+        try:
+            permissions = await self.permission_repo.search_permissions(search_term)
+            return self.mappers.permissions_to_responses(permissions)
+        except Exception as e:
+            self._handle_service_error(e, "search_permissions")
+            raise
     
     async def get_permission_by_name(self, permission_name: str) -> Optional[PermissionResponse]:
         """
@@ -111,12 +134,16 @@ class PermissionService:
         Returns:
             Optional[PermissionResponse]: Разрешение или None
         """
-        permission = await self.permission_repo.get_by_name(permission_name)
-        
-        if permission:
-            return self.mappers.permission_to_response(permission)
-        
-        return None
+        try:
+            permission = await self.permission_repo.get_by_name(permission_name)
+            
+            if permission:
+                return self.mappers.permission_to_response(permission)
+            
+            return None
+        except Exception as e:
+            self._handle_service_error(e, "get_permission_by_name")
+            raise
     
     async def get_permission_by_resource_and_action(
         self, 
@@ -133,14 +160,18 @@ class PermissionService:
         Returns:
             Optional[PermissionResponse]: Разрешение или None
         """
-        permission = await self.permission_repo.get_by_resource_and_action(
-            resource_type, action
-        )
-        
-        if permission:
-            return self.mappers.permission_to_response(permission)
-        
-        return None
+        try:
+            permission = await self.permission_repo.get_by_resource_and_action(
+                resource_type, action
+            )
+            
+            if permission:
+                return self.mappers.permission_to_response(permission)
+            
+            return None
+        except Exception as e:
+            self._handle_service_error(e, "get_permission_by_resource_and_action")
+            raise
     
     async def get_unique_resource_types(self) -> List[str]:
         """
@@ -149,7 +180,11 @@ class PermissionService:
         Returns:
             List[str]: Список уникальных типов ресурсов
         """
-        return await self.permission_repo.get_unique_resource_types()
+        try:
+            return await self.permission_repo.get_unique_resource_types()
+        except Exception as e:
+            self._handle_service_error(e, "get_unique_resource_types")
+            raise
     
     async def get_unique_actions(self) -> List[str]:
         """
@@ -158,7 +193,11 @@ class PermissionService:
         Returns:
             List[str]: Список уникальных действий
         """
-        return await self.permission_repo.get_unique_actions()
+        try:
+            return await self.permission_repo.get_unique_actions()
+        except Exception as e:
+            self._handle_service_error(e, "get_unique_actions")
+            raise
     
     async def get_permissions_grouped_by_resource_type(self) -> Dict[str, List[PermissionResponse]]:
         """
@@ -167,21 +206,25 @@ class PermissionService:
         Returns:
             Dict[str, List[PermissionResponse]]: Разрешения, сгруппированные по типу ресурса
         """
-        all_permissions = await self.permission_repo.get_ordered_by_resource_type()
-        
-        # Группируем разрешения по типу ресурса
-        grouped_permissions = {}
-        for permission in all_permissions:
-            resource_type = permission.resource_type
+        try:
+            all_permissions = await self.permission_repo.get_ordered_by_resource_type()
             
-            if resource_type not in grouped_permissions:
-                grouped_permissions[resource_type] = []
+            # Группируем разрешения по типу ресурса
+            grouped_permissions = {}
+            for permission in all_permissions:
+                resource_type = permission.resource_type
+                
+                if resource_type not in grouped_permissions:
+                    grouped_permissions[resource_type] = []
+                
+                grouped_permissions[resource_type].append(
+                    self.mappers.permission_to_response(permission)
+                )
             
-            grouped_permissions[resource_type].append(
-                self.mappers.permission_to_response(permission)
-            )
-        
-        return grouped_permissions
+            return grouped_permissions
+        except Exception as e:
+            self._handle_service_error(e, "get_permissions_grouped_by_resource_type")
+            raise
     
     async def get_permissions_statistics(self) -> Dict[str, any]:
         """
@@ -190,22 +233,26 @@ class PermissionService:
         Returns:
             Dict[str, any]: Статистика разрешений
         """
-        total_permissions = await self.permission_repo.count()
-        unique_resource_types = await self.permission_repo.get_unique_resource_types()
-        unique_actions = await self.permission_repo.get_unique_actions()
-        permissions_by_resource = await self.permission_repo.get_permissions_count_by_resource_type()
-        
-        return {
-            "total": total_permissions,
-            "unique_resource_types": len(unique_resource_types),
-            "unique_actions": len(unique_actions),
-            "resource_types": unique_resource_types,
-            "actions": unique_actions,
-            "by_resource_type": {
-                item["resource_type"]: item["count"] 
-                for item in permissions_by_resource
+        try:
+            total_permissions = await self.permission_repo.count()
+            unique_resource_types = await self.permission_repo.get_unique_resource_types()
+            unique_actions = await self.permission_repo.get_unique_actions()
+            permissions_by_resource = await self.permission_repo.get_permissions_count_by_resource_type()
+            
+            return {
+                "total": total_permissions,
+                "unique_resource_types": len(unique_resource_types),
+                "unique_actions": len(unique_actions),
+                "resource_types": unique_resource_types,
+                "actions": unique_actions,
+                "by_resource_type": {
+                    item["resource_type"]: item["count"] 
+                    for item in permissions_by_resource
+                }
             }
-        }
+        except Exception as e:
+            self._handle_service_error(e, "get_permissions_statistics")
+            raise
     
     async def get_permissions_overview(self) -> Dict[str, any]:
         """
@@ -214,19 +261,23 @@ class PermissionService:
         Returns:
             Dict[str, any]: Обзор разрешений с группировкой и статистикой
         """
-        # Параллельно получаем статистику и группировку
-        import asyncio
-        
-        stats_task = self.get_permissions_statistics()
-        grouped_task = self.get_permissions_grouped_by_resource_type()
-        
-        stats, grouped = await asyncio.gather(stats_task, grouped_task)
-        
-        return {
-            "statistics": stats,
-            "grouped_by_resource": grouped,
-            "total_groups": len(grouped)
-        }
+        try:
+            # Параллельно получаем статистику и группировку
+            import asyncio
+            
+            stats_task = self.get_permissions_statistics()
+            grouped_task = self.get_permissions_grouped_by_resource_type()
+            
+            stats, grouped = await asyncio.gather(stats_task, grouped_task)
+            
+            return {
+                "statistics": stats,
+                "grouped_by_resource": grouped,
+                "total_groups": len(grouped)
+            }
+        except Exception as e:
+            self._handle_service_error(e, "get_permissions_overview")
+            raise
     
     async def check_permission_exists(self, resource_type: str, action: str) -> bool:
         """
@@ -239,7 +290,11 @@ class PermissionService:
         Returns:
             bool: True если разрешение существует
         """
-        return await self.permission_repo.check_permission_exists(resource_type, action)
+        try:
+            return await self.permission_repo.check_permission_exists(resource_type, action)
+        except Exception as e:
+            self._handle_service_error(e, "check_permission_exists")
+            raise
     
     async def get_permissions_for_resource_types(
         self, 
@@ -254,10 +309,14 @@ class PermissionService:
         Returns:
             Dict[str, List[PermissionResponse]]: Разрешения для каждого типа ресурса
         """
-        result = {}
-        
-        for resource_type in resource_types:
-            permissions = await self.permission_repo.get_by_resource_type(resource_type)
-            result[resource_type] = self.mappers.permissions_to_responses(permissions)
-        
-        return result
+        try:
+            result = {}
+            
+            for resource_type in resource_types:
+                permissions = await self.permission_repo.get_by_resource_type(resource_type)
+                result[resource_type] = self.mappers.permissions_to_responses(permissions)
+            
+            return result
+        except Exception as e:
+            self._handle_service_error(e, "get_permissions_for_resource_types")
+            raise

@@ -9,11 +9,15 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from ...repositories.user_repository import UserRepository
 from ...mappers.system_mappers import SystemMappers
-from ...validators.system_validators import SystemValidators, UserNotFoundException
+from ...validators.system_validators import SystemValidators
+from ...exceptions.validator_exceptions import UserNotFoundException
 from ...schemas.user import UserProfile, UserUpdate
+from ...exceptions.business_exceptions import UserException
+from ...exceptions.database_exceptions import DatabaseException
+from ..base_service import BaseService
 
 
-class UserProfileService:
+class UserProfileService(BaseService):
     """
     Сервис для управления пользовательскими профилями
     Инкапсулирует бизнес-логику работы с профилями пользователей
@@ -31,6 +35,7 @@ class UserProfileService:
             mappers: Мапперы для преобразования данных
             validators: Валидаторы для проверки бизнес-правил
         """
+        super().__init__()
         self.user_repo = user_repo
         self.mappers = mappers
         self.validators = validators
@@ -55,13 +60,16 @@ class UserProfileService:
             # Получение пользователя с ролями и разрешениями
             user = await self.user_repo.get_user_with_roles_and_permissions(user_id)
             if not user:
-                raise UserNotFoundException(f"Пользователь с ID {user_id} не найден")
+                raise UserException(f"Пользователь с ID {user_id} не найден", "USER_NOT_FOUND")
             
             # Преобразование в схему профиля
             return self.mappers.user_to_profile_with_permissions(user)
             
-        except SQLAlchemyError as e:
-            raise Exception(f"Ошибка получения профиля пользователя: {str(e)}")
+        except UserException:
+            raise
+        except Exception as e:
+            self._handle_service_error(e, "get_user_profile")
+            raise
     
     async def update_user_profile(self, user_id: int, update_data: UserUpdate) -> UserProfile:
         """
@@ -100,13 +108,16 @@ class UserProfileService:
             # Обновление через репозиторий
             updated_user = await self.user_repo.update_user_profile_data(user_id, update_dict)
             if not updated_user:
-                raise UserNotFoundException(f"Не удалось обновить пользователя с ID {user_id}")
+                raise UserException(f"Не удалось обновить пользователя с ID {user_id}", "USER_UPDATE_FAILED")
             
             # Возвращаем обновленный профиль
             return await self.get_user_profile(user_id)
             
-        except SQLAlchemyError as e:
-            raise Exception(f"Ошибка обновления профиля пользователя: {str(e)}")
+        except UserException:
+            raise
+        except Exception as e:
+            self._handle_service_error(e, "update_user_profile")
+            raise
     
     async def deactivate_user_account(self, user_id: int) -> Dict[str, Any]:
         """
@@ -128,12 +139,12 @@ class UserProfileService:
             # Получаем пользователя для информации в ответе
             user = await self.user_repo.get_by_id(user_id)
             if not user:
-                raise UserNotFoundException(f"Пользователь с ID {user_id} не найден")
+                raise UserException(f"Пользователь с ID {user_id} не найден", "USER_NOT_FOUND")
             
             # Деактивация через репозиторий
             success = await self.user_repo.deactivate_user(user_id)
             if not success:
-                raise Exception(f"Не удалось деактивировать пользователя с ID {user_id}")
+                raise UserException(f"Не удалось деактивировать пользователя с ID {user_id}", "USER_DEACTIVATION_FAILED")
             
             # Формирование ответа
             return {
@@ -144,5 +155,8 @@ class UserProfileService:
                 "deactivated_at": datetime.utcnow().isoformat()
             }
             
-        except SQLAlchemyError as e:
-            raise Exception(f"Ошибка деактивации аккаунта: {str(e)}") 
+        except UserException:
+            raise
+        except Exception as e:
+            self._handle_service_error(e, "deactivate_user_account")
+            raise 
