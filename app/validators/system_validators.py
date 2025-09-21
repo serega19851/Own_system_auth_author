@@ -7,31 +7,10 @@ from typing import List
 from ..repositories.user_repository import UserRepository
 from ..repositories.role_repository import RoleRepository
 from ..repositories.permission_repository import PermissionRepository
-
-
-class UserNotFoundException(Exception):
-    """Исключение: пользователь не найден"""
-    pass
-
-
-class RoleNotFoundException(Exception):
-    """Исключение: роль не найдена"""
-    pass
-
-
-class RoleAlreadyExistsException(Exception):
-    """Исключение: роль уже существует"""
-    pass
-
-
-class PermissionNotFoundException(Exception):
-    """Исключение: разрешение не найдено"""
-    pass
-
-
-class InvalidRoleAssignmentException(Exception):
-    """Исключение: некорректное назначение роли"""
-    pass
+from ..exceptions.validator_exceptions import (
+    UserNotFoundException, RoleNotFoundException, RoleAlreadyExistsException,
+    PermissionNotFoundException, InvalidRoleAssignmentException
+)
 
 
 class SystemValidators:
