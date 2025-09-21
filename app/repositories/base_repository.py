@@ -1,4 +1,4 @@
-from typing import TypeVar, Type, Optional, List, Dict, Any, Generic
+from typing import TypeVar, Type, Optional, List, Dict, Any, Generic, Union
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete, func
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
@@ -55,9 +55,21 @@ class BaseRepository(Generic[T]):
             self.logger.error(f"Database error in get_all: {str(e)}")
             raise DatabaseException(f"Ошибка при получении списка {self.model_class.__name__}")
     
-    async def create(self, entity: T) -> T:
-        """Создать новый объект"""
+    async def create(self, entity: Union[T, Dict[str, Any]]) -> T:
+        """
+        Создать новый объект
+        
+        Args:
+            entity: Объект модели или словарь с данными для создания
+            
+        Returns:
+            T: Созданный объект
+        """
         try:
+            # Если передан словарь, создаем объект модели
+            if isinstance(entity, dict):
+                entity = self.model_class(**entity)
+            
             self.db.add(entity)
             await self.db.flush()  # Flush вместо commit для получения ID
             await self.db.refresh(entity)

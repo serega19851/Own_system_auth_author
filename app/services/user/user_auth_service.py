@@ -2,16 +2,15 @@
 from datetime import datetime
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, text
-from fastapi import status, Depends
 
-from app.models import User, Role
+
+from app.models import Role, User
 from app.schemas.auth import UserRegister, UserRegisterResponse
 from app.auth import PasswordService
-from app.core_dependencies import get_db
+from app.repositories.user_repository import UserRepository
+from app.repositories.role_repository import RoleRepository
 from ..base_service import BaseService
 from ...exceptions.business_exceptions import UserException, RoleException
-from ...exceptions.system_exceptions import SystemException
 
 
 class UserService(BaseService):
@@ -21,13 +20,13 @@ class UserService(BaseService):
         super().__init__()
         self.db = db
         self.password_service = PasswordService()
+        self.user_repository = UserRepository(db)
+        self.role_repository = RoleRepository(db)
     
     async def check_email_exists(self, email: str) -> bool:
         """Проверка существования пользователя с данным email"""
         try:
-            stmt = select(User).where(User.email == email)
-            result = await self.db.execute(stmt)
-            user = result.scalar_one_or_none()
+            user = await self.user_repository.get_by_email(email)
             return user is not None
         except Exception as e:
             self._handle_service_error(e, "check_email_exists")
@@ -36,9 +35,7 @@ class UserService(BaseService):
     async def get_default_role(self) -> Role:
         """Получение роли 'user' для новых пользователей"""
         try:
-            stmt = select(Role).where(Role.name == "user")
-            result = await self.db.execute(stmt)
-            role = result.scalar_one_or_none()
+            role = await self.role_repository.get_by_name("user")
             
             if not role:
                 raise RoleException("Базовая роль 'user' не найдена в системе", "DEFAULT_ROLE_NOT_FOUND")
@@ -58,23 +55,23 @@ class UserService(BaseService):
             # 2. Хеширование пароля
             hashed_password = self.password_service.hash_password(user_data.password)
             
-            # 3. Создание пользователя
-            new_user = User(
-                email=user_data.email,
-                password_hash=hashed_password,
-                first_name=user_data.first_name,
-                last_name=user_data.last_name,
-                middle_name=user_data.middle_name,
-                is_active=True,  # Сразу активный (в production можно сделать False до верификации email)
-                created_at=datetime.utcnow(),
-                updated_at=datetime.utcnow()
-            )
+            # 3. Подготовка данных для создания пользователя
+            user_data_dict = {
+                "email": user_data.email,
+                "password_hash": hashed_password,
+                "first_name": user_data.first_name,
+                "last_name": user_data.last_name,
+                "middle_name": user_data.middle_name,
+                "is_active": True,  # Сразу активный (в production можно сделать False до верификации email)
+                "created_at": datetime.utcnow(),
+                "updated_at": datetime.utcnow()
+            }
             
-            self.db.add(new_user)
-            await self.db.flush()  # Получаем ID пользователя
+            # 4. Создание пользователя через репозиторий (базовый метод принимает словарь)
+            created_user = await self.user_repository.create(user_data_dict)
             
             # 4. Назначение базовой роли "user"
-            await self.assign_default_role(new_user.id)
+            await self.assign_default_role(created_user.id)
             
             # 5. Сохранение в БД
             await self.db.commit()
@@ -85,11 +82,11 @@ class UserService(BaseService):
                 full_name = f"{user_data.first_name} {user_data.middle_name} {user_data.last_name}"
             
             return UserRegisterResponse(
-                id=new_user.id,
-                email=new_user.email,
+                id=created_user.id,
+                email=created_user.email,
                 full_name=full_name,
                 message="Пользователь успешно зарегистрирован",
-                is_active=new_user.is_active
+                is_active=created_user.is_active
             )
         except Exception as e:
             self._handle_service_error(e, "create_user")
@@ -100,11 +97,8 @@ class UserService(BaseService):
         try:
             default_role = await self.get_default_role()
             
-            # Создание связи user_roles через прямой SQL запрос
-            await self.db.execute(
-                text("INSERT INTO user_roles (user_id, role_id) VALUES (:user_id, :role_id)"),
-                {"user_id": user_id, "role_id": default_role.id}
-            )
+            # Назначение роли через репозиторий
+            await self.user_repository.update_user_roles(user_id, [default_role.id])
         except Exception as e:
             self._handle_service_error(e, "assign_default_role")
             raise
@@ -112,10 +106,8 @@ class UserService(BaseService):
     async def authenticate_user(self, email: str, password: str) -> Optional[User]:
         """Аутентификация пользователя"""
         try:
-            # Получение пользователя с ролями
-            stmt = select(User).where(User.email == email)
-            result = await self.db.execute(stmt)
-            user = result.scalar_one_or_none()
+            # Получение пользователя
+            user = await self.user_repository.get_by_email(email)
             
             if not user:
                 return None
@@ -134,15 +126,7 @@ class UserService(BaseService):
     async def get_user_by_email(self, email: str) -> Optional[User]:
         """Получение пользователя по email"""
         try:
-            stmt = select(User).where(User.email == email)
-            result = await self.db.execute(stmt)
-            user = result.scalar_one_or_none()
-            return user
+            return await self.user_repository.get_by_email(email)
         except Exception as e:
             self._handle_service_error(e, "get_user_by_email")
             raise
-
-
-async def get_user_service(db: AsyncSession = Depends(get_db)) -> UserService:
-    """Фабрика для получения сервиса пользователей"""
-    return UserService(db)
