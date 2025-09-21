@@ -13,9 +13,13 @@ load_dotenv()
 class DatabaseConfig:
     """Настройки базы данных"""
     
+    # Приоритет: DATABASE_URL_POSTGRES (для Docker) -> DATABASE_URL (для локального запуска)
     DATABASE_URL: str = os.getenv(
-        "DATABASE_URL", 
-        "postgresql+asyncpg://auth_user:auth_password@localhost:5432/auth_system"
+        "DATABASE_URL_POSTGRES",
+        os.getenv(
+            "DATABASE_URL", 
+            "postgresql+asyncpg://auth_user:auth_password@localhost:5432/auth_system"
+        )
     )
 
 
