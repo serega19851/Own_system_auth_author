@@ -18,17 +18,10 @@ from app.database import get_db
 # Админские зависимости
 from .admin import (
     AdminPanelDependencyFactory,
-    get_admin_panel_service,
     get_system_statistics_service,
     get_user_management_service,
     get_role_management_service,
     get_permission_service,
-    get_user_repository,
-    get_role_repository,
-    get_permission_repository,
-    get_resource_repository,
-    get_system_mappers,
-    get_system_validators
 )
 
 # Пользовательские зависимости
@@ -61,17 +54,10 @@ __all__ = [
     
     # Админские зависимости
     "AdminPanelDependencyFactory",
-    "get_admin_panel_service",
     "get_system_statistics_service",
     "get_user_management_service",
     "get_role_management_service",
     "get_permission_service",
-    "get_user_repository",
-    "get_role_repository",
-    "get_permission_repository",
-    "get_resource_repository",
-    "get_system_mappers",
-    "get_system_validators",
     
     # Пользовательские зависимости
     "UserProfileDependencyFactory",

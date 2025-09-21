@@ -24,7 +24,6 @@ from ...services.admin.system_statistics_service import SystemStatisticsService
 from ...services.admin.user_management_service import UserManagementService
 from ...services.admin.role_management_service import RoleManagementService
 from ...services.admin.permission_service import PermissionService
-from ...services.admin.admin_panel_service import AdminPanelService
 
 
 class AdminPanelDependencyFactory:
@@ -118,91 +117,7 @@ class AdminPanelDependencyFactory:
             permission_repo=permission_repo,
             mappers=mappers
         )
-    
-    @staticmethod
-    def create_admin_panel_service(
-        statistics_service: SystemStatisticsService,
-        user_management_service: UserManagementService,
-        role_management_service: RoleManagementService,
-        permission_service: PermissionService
-    ) -> AdminPanelService:
-        """Создать главный сервис админ-панели"""
-        return AdminPanelService(
-            statistics_service=statistics_service,
-            user_management_service=user_management_service,
-            role_management_service=role_management_service,
-            permission_service=permission_service
-        )
 
-
-# ============================================================================
-# DEPENDENCY INJECTION FUNCTIONS
-# ============================================================================
-
-async def get_admin_panel_service(db: AsyncSession = Depends(get_db)) -> AdminPanelService:
-    """
-    Главная функция для получения AdminPanelService со всеми зависимостями
-    
-    Создает полную иерархию:
-    Repositories -> Mappers/Validators -> Specialized Services -> AdminPanelService
-    
-    Args:
-        db: Сессия базы данных
-        
-    Returns:
-        AdminPanelService: Полностью настроенный сервис админ-панели
-    """
-    factory = AdminPanelDependencyFactory()
-    
-    # ========================================
-    # СОЗДАНИЕ РЕПОЗИТОРИЕВ
-    # ========================================
-    user_repo = factory.create_user_repository(db)
-    role_repo = factory.create_role_repository(db)
-    permission_repo = factory.create_permission_repository(db)
-    resource_repo = factory.create_resource_repository(db)
-    
-    # ========================================
-    # СОЗДАНИЕ УТИЛИТ
-    # ========================================
-    mappers = factory.create_system_mappers()
-    validators = factory.create_system_validators()
-    
-    # ========================================
-    # СОЗДАНИЕ СПЕЦИАЛИЗИРОВАННЫХ СЕРВИСОВ
-    # ========================================
-    statistics_service = factory.create_system_statistics_service(
-        user_repo, role_repo, permission_repo, resource_repo
-    )
-    
-    user_management_service = factory.create_user_management_service(
-        user_repo, role_repo, validators, mappers
-    )
-    
-    role_management_service = factory.create_role_management_service(
-        role_repo, permission_repo, validators, mappers
-    )
-    
-    permission_service = factory.create_permission_service(
-        permission_repo, mappers
-    )
-    
-    # ========================================
-    # СОЗДАНИЕ ГЛАВНОГО КООРДИНАТОРА
-    # ========================================
-    admin_panel_service = factory.create_admin_panel_service(
-        statistics_service,
-        user_management_service,
-        role_management_service,
-        permission_service
-    )
-    
-    return admin_panel_service
-
-
-# ============================================================================
-# ОТДЕЛЬНЫЕ ЗАВИСИМОСТИ ДЛЯ СПЕЦИАЛИЗИРОВАННЫХ СЕРВИСОВ
-# ============================================================================
 
 async def get_system_statistics_service(db: AsyncSession = Depends(get_db)) -> SystemStatisticsService:
     """Получить сервис статистики системы"""
@@ -254,37 +169,3 @@ async def get_permission_service(db: AsyncSession = Depends(get_db)) -> Permissi
     mappers = factory.create_system_mappers()
     
     return factory.create_permission_service(permission_repo, mappers)
-
-
-# ============================================================================
-# ВСПОМОГАТЕЛЬНЫЕ ЗАВИСИМОСТИ
-# ============================================================================
-
-async def get_user_repository(db: AsyncSession = Depends(get_db)) -> UserRepository:
-    """Получить репозиторий пользователей"""
-    return AdminPanelDependencyFactory.create_user_repository(db)
-
-
-async def get_role_repository(db: AsyncSession = Depends(get_db)) -> RoleRepository:
-    """Получить репозиторий ролей"""
-    return AdminPanelDependencyFactory.create_role_repository(db)
-
-
-async def get_permission_repository(db: AsyncSession = Depends(get_db)) -> PermissionRepository:
-    """Получить репозиторий разрешений"""
-    return AdminPanelDependencyFactory.create_permission_repository(db)
-
-
-async def get_resource_repository(db: AsyncSession = Depends(get_db)) -> ResourceRepository:
-    """Получить репозиторий ресурсов"""
-    return AdminPanelDependencyFactory.create_resource_repository(db)
-
-
-def get_system_mappers() -> SystemMappers:
-    """Получить мапперы системы"""
-    return AdminPanelDependencyFactory.create_system_mappers()
-
-
-def get_system_validators() -> SystemValidators:
-    """Получить валидаторы системы"""
-    return AdminPanelDependencyFactory.create_system_validators()

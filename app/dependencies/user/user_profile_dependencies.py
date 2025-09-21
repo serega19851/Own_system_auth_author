@@ -110,22 +110,3 @@ async def get_user_auth_service(db: AsyncSession = Depends(get_db)) -> UserServi
     """
     factory = UserProfileDependencyFactory()
     return factory.create_user_auth_service(db)
-
-
-# ============================================================================
-# ВСПОМОГАТЕЛЬНЫЕ ЗАВИСИМОСТИ
-# ============================================================================
-
-async def get_user_repository(db: AsyncSession = Depends(get_db)) -> UserRepository:
-    """Получить репозиторий пользователей"""
-    return UserProfileDependencyFactory.create_user_repository(db)
-
-
-def get_user_mappers() -> SystemMappers:
-    """Получить мапперы для пользовательских операций"""
-    return UserProfileDependencyFactory.create_system_mappers()
-
-
-def get_user_validators() -> SystemValidators:
-    """Получить валидаторы для пользовательских операций"""
-    return UserProfileDependencyFactory.create_system_validators()
