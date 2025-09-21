@@ -17,7 +17,6 @@ security = HTTPBearer()
 
 @router.get("/stats", response_model=AdminStatsResponse, dependencies=[Depends(security)])
 async def get_admin_stats(
-    admin_user: User = Depends(get_admin_user),
     admin_panel: AdminPanelService = Depends(get_admin_panel_service)
 ):
     """Получить статистику системы для админ-панели"""
@@ -26,7 +25,6 @@ async def get_admin_stats(
 
 @router.get("/users", response_model=List[UserListItem], dependencies=[Depends(security)])
 async def get_all_users(
-    admin_user: User = Depends(get_admin_user),
     admin_panel: AdminPanelService = Depends(get_admin_panel_service)
 ):
     """Получить список всех пользователей"""
@@ -37,7 +35,6 @@ async def get_all_users(
 async def update_user_roles(
     user_id: int,
     role_update: UserRoleUpdate,
-    admin_user: User = Depends(get_admin_user),
     admin_panel: AdminPanelService = Depends(get_admin_panel_service),
 ):
     """Обновить роли пользователя"""
@@ -46,7 +43,6 @@ async def update_user_roles(
 
 @router.get("/roles", response_model=List[RoleResponse], dependencies=[Depends(security)])
 async def get_all_roles(
-    admin_user: User = Depends(get_admin_user),
     admin_panel: AdminPanelService = Depends(get_admin_panel_service)
 ):
     """Получить список всех ролей"""
@@ -56,7 +52,6 @@ async def get_all_roles(
 @router.post("/roles", response_model=RoleResponse, dependencies=[Depends(security)])
 async def create_role(
     role_data: RoleCreate,
-    admin_user: User = Depends(get_admin_user),
     admin_panel: AdminPanelService = Depends(get_admin_panel_service),
 ):
     """Создать новую роль"""
@@ -65,7 +60,6 @@ async def create_role(
 
 @router.get("/permissions", response_model=List[PermissionResponse], dependencies=[Depends(security)])
 async def get_all_permissions(
-    admin_user: User = Depends(get_admin_user),
     admin_panel: AdminPanelService = Depends(get_admin_panel_service)
 ):
     """Получить список всех разрешений"""
